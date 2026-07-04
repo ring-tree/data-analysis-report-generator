@@ -32,6 +32,7 @@ target/
 # Generated files
 dependency-reduced-pom.xml
 jte-classes/
+output/
 
 # ignore file
 Ignore*
