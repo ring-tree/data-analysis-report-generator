@@ -45,12 +45,13 @@ class CsvDataParserTest {
         List<String> columnNames = parser.getColumnNames();
 
         assertNotNull(columnNames);
-        assertEquals(5, columnNames.size(), "应有 5 列");
+        assertEquals(6, columnNames.size(), "应有 6 列");
         assertEquals("ID", columnNames.get(0));
         assertEquals("Score", columnNames.get(1));
         assertEquals("Age", columnNames.get(2));
         assertEquals("GPA", columnNames.get(3));
         assertEquals("Attendance", columnNames.get(4));
+        assertEquals("Hours", columnNames.get(5));
     }
 
     @Test

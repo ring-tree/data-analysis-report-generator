@@ -1,9 +1,3 @@
-@import com.audaque.model.DataSummary
-@import com.audaque.model.ColumnStat
-@import java.util.Map
-
-@param DataSummary summary
-@param String analysisText
 
 <!DOCTYPE html>
 <html lang="zh-CN">
@@ -203,39 +197,37 @@
 <body>
     <div class="container">
         <h1>数据分析报告</h1>
-        <p class="subtitle">生成时间：${java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))}</p>
+        <p class="subtitle">生成时间：2026-07-05 06:29:03</p>
 
         <section class="section">
             <h2>数据总览</h2>
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="stat-label">总行数</div>
-                    <div class="stat-value">${summary.totalRows()}</div>
+                    <div class="stat-value">25</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">有效行数</div>
-                    <div class="stat-value">${summary.validRows()}</div>
+                    <div class="stat-value">25</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">空行数</div>
-                    <div class="stat-value">${summary.emptyRows()}</div>
+                    <div class="stat-value">0</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">总列数</div>
-                    <div class="stat-value">${summary.columnCount()}</div>
+                    <div class="stat-value">6</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">列名</div>
-                    <div class="stat-value" style="font-size:14px;word-break:break-all;">${String.join(", ", summary.columnNames())}</div>
+                    <div class="stat-value" style="font-size:14px;word-break:break-all;">ID, Score, Age, GPA, Attendance, Hours</div>
                 </div>
             </div>
         </section>
 
         <section class="section">
             <h2>各列统计信息</h2>
-            @if(summary.columnStats().isEmpty())
-                <p style="color:var(--text-secondary);">无列统计信息。</p>
-            @else
+            
                 <div style="overflow-x:auto;">
                     <table>
                         <thead>
@@ -252,86 +244,176 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @for(var entry : summary.columnStats().entrySet())
+                            
                                 <tr>
-                                    <td><strong>${entry.getKey()}</strong></td>
-                                    <td>${entry.getValue().count()}</td>
-                                    <td>${String.format("%.4f", entry.getValue().mean())}</td>
-                                    <td>${String.format("%.4f", entry.getValue().median())}</td>
-                                    <td>${String.format("%.4f", entry.getValue().stdDev())}</td>
-                                    <td>${String.format("%.4f", entry.getValue().min())}</td>
-                                    <td>${String.format("%.4f", entry.getValue().max())}</td>
+                                    <td><strong>GPA</strong></td>
+                                    <td>25</td>
+                                    <td>27.2760</td>
+                                    <td>3.7000</td>
+                                    <td>38.9894</td>
+                                    <td>3.0000</td>
+                                    <td>94.0000</td>
                                     <td>
-                                        @if(entry.getValue().missingCount() > 0)
-                                            <span class="badge @if(((double) entry.getValue().missingCount() / (entry.getValue().count() + entry.getValue().missingCount()) * 100) > 10) badge-warning @else badge-success @endif">${entry.getValue().missingCount()} (${String.format("%.1f", (double) entry.getValue().missingCount() / (entry.getValue().count() + entry.getValue().missingCount()) * 100)}%)</span>
-                                        @else
+                                        
                                             <span class="badge badge-success">0</span>
-                                        @endif
+                                        
                                     </td>
                                     <td>
-                                        @if(entry.getValue().outlierCount() > 0)
-                                            <span class="badge badge-danger">${entry.getValue().outlierCount()}</span>
-                                        @else
+                                        
                                             <span class="badge badge-success">0</span>
-                                        @endif
+                                        
                                     </td>
                                 </tr>
-                            @endfor
+                            
+                                <tr>
+                                    <td><strong>ID</strong></td>
+                                    <td>25</td>
+                                    <td>13.0000</td>
+                                    <td>13.0000</td>
+                                    <td>7.3598</td>
+                                    <td>1.0000</td>
+                                    <td>25.0000</td>
+                                    <td>
+                                        
+                                            <span class="badge badge-success">0</span>
+                                        
+                                    </td>
+                                    <td>
+                                        
+                                            <span class="badge badge-success">0</span>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr>
+                                    <td><strong>Hours</strong></td>
+                                    <td>17</td>
+                                    <td>19.0882</td>
+                                    <td>19.0000</td>
+                                    <td>2.2447</td>
+                                    <td>15.0000</td>
+                                    <td>23.0000</td>
+                                    <td>
+                                        
+                                            <span class="badge  badge-warning ">8 (32.0%)</span>
+                                        
+                                    </td>
+                                    <td>
+                                        
+                                            <span class="badge badge-success">0</span>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr>
+                                    <td><strong>Attendance</strong></td>
+                                    <td>25</td>
+                                    <td>66.2400</td>
+                                    <td>86.5000</td>
+                                    <td>33.8610</td>
+                                    <td>12.0000</td>
+                                    <td>95.0000</td>
+                                    <td>
+                                        
+                                            <span class="badge badge-success">0</span>
+                                        
+                                    </td>
+                                    <td>
+                                        
+                                            <span class="badge badge-success">0</span>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr>
+                                    <td><strong>Score</strong></td>
+                                    <td>25</td>
+                                    <td>113.7800</td>
+                                    <td>85.5000</td>
+                                    <td>186.1194</td>
+                                    <td>0.5000</td>
+                                    <td>999.0000</td>
+                                    <td>
+                                        
+                                            <span class="badge badge-success">0</span>
+                                        
+                                    </td>
+                                    <td>
+                                        
+                                            <span class="badge badge-danger">4</span>
+                                        
+                                    </td>
+                                </tr>
+                            
+                                <tr>
+                                    <td><strong>Age</strong></td>
+                                    <td>25</td>
+                                    <td>19.7160</td>
+                                    <td>20.0000</td>
+                                    <td>7.8741</td>
+                                    <td>3.1000</td>
+                                    <td>45.0000</td>
+                                    <td>
+                                        
+                                            <span class="badge badge-success">0</span>
+                                        
+                                    </td>
+                                    <td>
+                                        
+                                            <span class="badge badge-danger">4</span>
+                                        
+                                    </td>
+                                </tr>
+                            
                         </tbody>
                     </table>
                 </div>
-            @endif
+            
         </section>
 
-        !{var emptyRatio = summary.totalRows() > 0 ? (double) summary.emptyRows() / summary.totalRows() * 100 : 0;}
-        !{var validRatio = summary.totalRows() > 0 ? (double) summary.validRows() / summary.totalRows() * 100 : 0;}
+        
+        
 
         <section class="section">
             <h2>数据质量报告</h2>
             <div class="quality-item">
                 <span class="quality-label">空行占比</span>
                 <span>
-                    <span class="badge @if(emptyRatio < 5) badge-success @elseif(emptyRatio < 15) badge-warning @else badge-danger @endif">@if(emptyRatio < 5) 良好 @elseif(emptyRatio < 15) 一般 @else 较差 @endif</span>
-                    <span style="margin-left:8px;color:var(--text-secondary);">${String.format("%.2f", emptyRatio)}% (${summary.emptyRows()}/${summary.totalRows()})</span>
+                    <span class="badge  badge-success "> 良好 </span>
+                    <span style="margin-left:8px;color:var(--text-secondary);">0.00% (0/25)</span>
                 </span>
             </div>
             <div class="quality-item">
                 <span class="quality-label">有效数据占比</span>
                 <span>
-                    <span class="badge @if(validRatio > 95) badge-success @elseif(validRatio > 80) badge-warning @else badge-danger @endif">@if(validRatio > 95) 良好 @elseif(validRatio > 80) 一般 @else 较差 @endif</span>
-                    <span style="margin-left:8px;color:var(--text-secondary);">${String.format("%.2f", validRatio)}% (${summary.validRows()}/${summary.totalRows()})</span>
+                    <span class="badge  badge-success "> 良好 </span>
+                    <span style="margin-left:8px;color:var(--text-secondary);">100.00% (25/25)</span>
                 </span>
             </div>
 
             <div class="quality-item">
                 <span class="quality-label">缺失值总数</span>
                 <span>
-                    @if(summary.columnStats().values().stream().mapToLong(v -> v.missingCount()).sum() > 0)
-                        <span class="badge badge-warning">${summary.columnStats().values().stream().mapToLong(v -> v.missingCount()).sum()}</span>
-                    @else
-                        <span class="badge badge-success">无缺失</span>
-                    @endif
+                    
+                        <span class="badge badge-warning">8</span>
+                    
                 </span>
             </div>
             <div class="quality-item">
                 <span class="quality-label">异常值总数</span>
                 <span>
-                    @if(summary.columnStats().values().stream().mapToLong(v -> v.outlierCount()).sum() > 0)
-                        <span class="badge badge-danger">${summary.columnStats().values().stream().mapToLong(v -> v.outlierCount()).sum()}</span>
-                    @else
-                        <span class="badge badge-success">无异常值</span>
-                    @endif
+                    
+                        <span class="badge badge-danger">8</span>
+                    
                 </span>
             </div>
         </section>
 
         <section class="section">
             <h2>分析结论</h2>
-            @if(analysisText == null || analysisText.isEmpty())
-                <p style="color:var(--text-secondary);">暂无分析结论。</p>
-            @else
-                <div class="analysis-text">${analysisText}</div>
-            @endif
+            
+                <div class="analysis-text">基于数据分析，该数据集包含 25 条记录和 6 个特征列。Score 列存在一个极端异常值 999.0，建议进行异常值清洗。Age 列在正常范围内 (18-24)，无明显异常。数据整体质量良好，有效记录占比超过 80%。</div>
+            
         </section>
 
         <footer>

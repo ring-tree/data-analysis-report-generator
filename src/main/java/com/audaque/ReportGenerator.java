@@ -50,7 +50,7 @@ public class ReportGenerator {
         }
     }
 
-    private static Path execute(String csvPath) throws IOException {
+    static Path execute(String csvPath) throws IOException {
         logger.info("[Step 1] Parsing CSV file: {}", csvPath);
         CsvDataParser parser = new CsvDataParser();
         List<List<Double>> data = parser.parse(csvPath);

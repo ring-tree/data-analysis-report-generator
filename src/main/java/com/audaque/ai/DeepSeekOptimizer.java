@@ -307,16 +307,19 @@ public class DeepSeekOptimizer {
         }
     }
 
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     static class ApiResponse {
         @JsonProperty("choices")
         List<ApiChoice> choices;
     }
 
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     static class ApiChoice {
         @JsonProperty("message")
         ApiMessage message;
     }
 
+    @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     static class ApiMessage {
         @JsonProperty("content")
         String content;
