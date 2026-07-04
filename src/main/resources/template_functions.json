@@ -1,0 +1,262 @@
+[
+  {
+    "id": "total_rows",
+    "name": "统计总行数",
+    "category": "数据总览",
+    "description": "统计 CSV 数据表中的总行数，包含表头行",
+    "parameters": [],
+    "implementation": "// 统计数据集总行数\nlong totalRows = csvData.getRecords().size();\nreturn totalRows;"
+  },
+  {
+    "id": "column_count",
+    "name": "统计列数",
+    "category": "数据总览",
+    "description": "统计 CSV 数据表中的列数",
+    "parameters": [],
+    "implementation": "// 根据表头获取列数\nint columnCount = csvData.getHeader().size();\nreturn columnCount;"
+  },
+  {
+    "id": "basic_stats",
+    "name": "基本统计量",
+    "category": "数据总览",
+    "description": "对指定列计算基本统计量，包括计数、均值、中位数、标准差、最小值、最大值、缺失值数和异常值数",
+    "parameters": [
+      {
+        "name": "columnName",
+        "type": "COLUMN_REF",
+        "description": "需要统计的目标列名",
+        "defaultValue": null,
+        "required": true
+      }
+    ],
+    "implementation": "// 计算某列的基本统计量\nColumnStat stat = new ColumnStat(columnName, count, mean, median, stdDev, min, max, missingCount, outlierCount);\nreturn stat;"
+  },
+  {
+    "id": "remove_nulls",
+    "name": "移除空值行",
+    "category": "数据清洗",
+    "description": "移除包含空值的数据行",
+    "parameters": [
+      {
+        "name": "columns",
+        "type": "COLUMN_REF",
+        "description": "检查空值的目标列名列表",
+        "defaultValue": null,
+        "required": true
+      },
+      {
+        "name": "strategy",
+        "type": "STRING",
+        "description": "移除策略：ANY（任一列为空则移除）或 ALL（全部为空才移除）",
+        "defaultValue": "ANY",
+        "required": false
+      }
+    ],
+    "implementation": "// 移除含空值的行\nList<Record> cleaned = records.stream()\n    .filter(r -> columns.stream().noneMatch(col -> r.get(col) == null))\n    .toList();\nreturn cleaned;"
+  },
+  {
+    "id": "remove_outliers",
+    "name": "移除异常值",
+    "category": "数据清洗",
+    "description": "基于 IQR 方法移除指定列的异常值",
+    "parameters": [
+      {
+        "name": "columnName",
+        "type": "COLUMN_REF",
+        "description": "检测异常值的目标列名",
+        "defaultValue": null,
+        "required": true
+      },
+      {
+        "name": "iqrMultiplier",
+        "type": "NUMBER",
+        "description": "IQR 乘数，默认 1.5",
+        "defaultValue": "1.5",
+        "required": false
+      }
+    ],
+    "implementation": "// 基于 IQR 移除异常值\ndouble q1 = percentile(data, 25);\ndouble q3 = percentile(data, 75);\ndouble iqr = q3 - q1;\ndouble lower = q1 - multiplier * iqr;\ndouble upper = q3 + multiplier * iqr;\nreturn data.stream().filter(v -> v >= lower && v <= upper).toList();"
+  },
+  {
+    "id": "fill_missing",
+    "name": "填充缺失值",
+    "category": "数据清洗",
+    "description": "填充数据表中的缺失值",
+    "parameters": [
+      {
+        "name": "columnName",
+        "type": "COLUMN_REF",
+        "description": "需要填充缺失值的目标列名",
+        "defaultValue": null,
+        "required": true
+      },
+      {
+        "name": "fillMethod",
+        "type": "STRING",
+        "description": "填充方法：MEAN（均值）、MEDIAN（中位数）、MODE（众数）、CONSTANT（常量）",
+        "defaultValue": "MEAN",
+        "required": false
+      },
+      {
+        "name": "constantValue",
+        "type": "NUMBER",
+        "description": "当 fillMethod 为 CONSTANT 时的填充值",
+        "defaultValue": "0",
+        "required": false
+      }
+    ],
+    "implementation": "// 填充缺失值\ndouble fillValue = switch(fillMethod) {\n    case \"MEAN\" -> calculateMean(column);\n    case \"MEDIAN\" -> calculateMedian(column);\n    case \"MODE\" -> calculateMode(column);\n    case \"CONSTANT\" -> Double.parseDouble(constantValue);\n    default -> 0;\n};\nreturn fillMissingWith(column, fillValue);"
+  },
+  {
+    "id": "normalize",
+    "name": "归一化",
+    "category": "数据处理",
+    "description": "对指定列进行 Min-Max 归一化处理，将数据缩放到指定范围",
+    "parameters": [
+      {
+        "name": "columnName",
+        "type": "COLUMN_REF",
+        "description": "需要归一化的目标列名",
+        "defaultValue": null,
+        "required": true
+      },
+      {
+        "name": "minRange",
+        "type": "NUMBER",
+        "description": "目标范围下限",
+        "defaultValue": "0",
+        "required": false
+      },
+      {
+        "name": "maxRange",
+        "type": "NUMBER",
+        "description": "目标范围上限",
+        "defaultValue": "1",
+        "required": false
+      }
+    ],
+    "implementation": "// Min-Max 归一化\ndouble colMin = columnStats.get(columnName).min();\ndouble colMax = columnStats.get(columnName).max();\ndouble range = colMax - colMin;\nreturn data.stream()\n    .map(v -> minRange + (v - colMin) / range * (maxRange - minRange))\n    .toList();"
+  },
+  {
+    "id": "standardize",
+    "name": "标准化",
+    "category": "数据处理",
+    "description": "对指定列进行 Z-Score 标准化处理",
+    "parameters": [
+      {
+        "name": "columnName",
+        "type": "COLUMN_REF",
+        "description": "需要标准化的目标列名",
+        "defaultValue": null,
+        "required": true
+      }
+    ],
+    "implementation": "// Z-Score 标准化\ndouble mean = columnStats.get(columnName).mean();\ndouble stdDev = columnStats.get(columnName).stdDev();\nreturn data.stream()\n    .map(v -> (v - mean) / stdDev)\n    .toList();"
+  },
+  {
+    "id": "categorize",
+    "name": "分类编码",
+    "category": "数据处理",
+    "description": "将连续数值转换为离散类别",
+    "parameters": [
+      {
+        "name": "columnName",
+        "type": "COLUMN_REF",
+        "description": "需要分类编码的目标列名",
+        "defaultValue": null,
+        "required": true
+      },
+      {
+        "name": "binCount",
+        "type": "NUMBER",
+        "description": "分类数量",
+        "defaultValue": "5",
+        "required": false
+      },
+      {
+        "name": "method",
+        "type": "STRING",
+        "description": "分类方法：EQUAL_WIDTH（等宽）或 EQUAL_FREQ（等频）",
+        "defaultValue": "EQUAL_WIDTH",
+        "required": false
+      }
+    ],
+    "implementation": "// 等宽/等频分箱\ndouble colMin = columnStats.get(columnName).min();\ndouble colMax = columnStats.get(columnName).max();\nreturn createBins(data, colMin, colMax, binCount, method);"
+  },
+  {
+    "id": "correlation",
+    "name": "相关性分析",
+    "category": "数据分析",
+    "description": "计算两列之间的皮尔逊相关系数",
+    "parameters": [
+      {
+        "name": "columnX",
+        "type": "COLUMN_REF",
+        "description": "第一列列名",
+        "defaultValue": null,
+        "required": true
+      },
+      {
+        "name": "columnY",
+        "type": "COLUMN_REF",
+        "description": "第二列列名",
+        "defaultValue": null,
+        "required": true
+      }
+    ],
+    "implementation": "// 皮尔逊相关系数\ndouble meanX = columnStats.get(columnX).mean();\ndouble meanY = columnStats.get(columnY).mean();\ndouble covariance = 0, stdX = 0, stdY = 0;\nfor (int i = 0; i < n; i++) {\n    double dx = get(colX, i) - meanX;\n    double dy = get(colY, i) - meanY;\n    covariance += dx * dy;\n    stdX += dx * dx;\n    stdY += dy * dy;\n}\nreturn covariance / Math.sqrt(stdX * stdY);"
+  },
+  {
+    "id": "group_by",
+    "name": "分组聚合",
+    "category": "数据分析",
+    "description": "按指定列分组并执行聚合操作",
+    "parameters": [
+      {
+        "name": "groupColumn",
+        "type": "COLUMN_REF",
+        "description": "分组依据列名",
+        "defaultValue": null,
+        "required": true
+      },
+      {
+        "name": "aggColumn",
+        "type": "COLUMN_REF",
+        "description": "聚合目标列名",
+        "defaultValue": null,
+        "required": true
+      },
+      {
+        "name": "aggFunction",
+        "type": "STRING",
+        "description": "聚合函数：SUM、AVG、COUNT、MIN、MAX",
+        "defaultValue": "AVG",
+        "required": false
+      }
+    ],
+    "implementation": "// 分组聚合\nMap<String, Double> result = new HashMap<>();\nfor (Record r : records) {\n    String key = r.get(groupColumn);\n    double val = r.get(aggColumn);\n    result.merge(key, val, Double::sum);\n}\nreturn result;"
+  },
+  {
+    "id": "percentile",
+    "name": "百分位数计算",
+    "category": "数据分析",
+    "description": "计算指定列的百分位数值",
+    "parameters": [
+      {
+        "name": "columnName",
+        "type": "COLUMN_REF",
+        "description": "目标列名",
+        "defaultValue": null,
+        "required": true
+      },
+      {
+        "name": "percentile",
+        "type": "NUMBER",
+        "description": "百分位数值（0-100）",
+        "defaultValue": "50",
+        "required": false
+      }
+    ],
+    "implementation": "// 百分位数计算\nList<Double> sorted = data.stream().sorted().toList();\ndouble k = (sorted.size() - 1) * percentileValue / 100.0;\nint f = (int) Math.floor(k);\nint c = (int) Math.ceil(k);\nreturn (f == c) ? sorted.get(f) : sorted.get(f) * (c - k) + sorted.get(c) * (k - f);"
+  }
+]
