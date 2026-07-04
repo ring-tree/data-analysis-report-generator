@@ -276,6 +276,21 @@ public class DeepSeekOptimizer {
         return firstChoice.message.content.trim();
     }
 
+    /**
+     * 根据报告 prompt 生成最终的数据分析结论文本。
+     *
+     * @param reportPrompt 由 generateReportPrompt 生成的分析 prompt
+     * @return DeepSeek 生成的分析结论文本
+     * @throws IOException API 调用失败
+     */
+    public String generateAnalysisText(String reportPrompt) throws IOException {
+        String systemPrompt = "你是一个数据分析报告专家。请根据给定的分析prompt生成详细、专业的数据分析结论。";
+
+        String response = callApi(systemPrompt, reportPrompt);
+        logger.info("Generated analysis text (length={})", response.length());
+        return response;
+    }
+
     private List<String> parseStringList(String response) {
         try {
             return objectMapper.readValue(response, new TypeReference<List<String>>() {});
