@@ -1,0 +1,20 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "instructions": [
+    "./AGENTS.md",
+    ".kilo/rules/auto-git-commit.md",
+    ".kilo/rules/jsonl-maintenance.md",
+    ".kilo/rules/coding-standards.md"
+  ],
+  "agent": {
+    "report-agent": {
+      "description": "数据分析报告生成专用Agent，负责调用DeepSeek优化模板函数并生成HTML报告",
+      "mode": "all",
+      "model": "deepseek/deepseek-v4-flash",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    }
+  }
+}
