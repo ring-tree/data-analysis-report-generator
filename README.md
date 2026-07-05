@@ -54,6 +54,26 @@ data-analysis-report-generator/
     └── report.html                   # 生成的 HTML 分析报告
 ```
 
+## 依赖说明
+
+| 依赖 | GroupId | ArtifactId | 版本 | 用途 |
+|------|---------|------------|------|------|
+| Apache Commons CSV | `org.apache.commons` | `commons-csv` | 1.12.0 | CSV 文件解析，自动检测表头，逐列读取数值 |
+| Jackson Databind | `com.fasterxml.jackson.core` | `jackson-databind` | 2.18.3 | JSON 序列化/反序列化，解析 DeepSeek API 响应和模板函数配置 |
+| jte | `gg.jte` | `jte` | 3.1.15 | 模板引擎，渲染 HTML 数据分析报告 |
+| OkHttp | `com.squareup.okhttp3` | `okhttp` | 4.12.0 | HTTP 客户端，调用 DeepSeek API |
+| SLF4J API | `org.slf4j` | `slf4j-api` | 2.0.16 | 日志门面 |
+| Logback Classic | `ch.qos.logback` | `logback-classic` | 1.5.16 | SLF4J 实现，控制台日志输出 |
+| Commons Math | `org.apache.commons` | `commons-math3` | 3.6.1 | 统计计算：均值、中位数、标准差、百分位数 |
+| JUnit Jupiter (test) | `org.junit.jupiter` | `junit-jupiter` | 5.11.4 | 单元测试与集成测试框架 |
+
+### Maven 构建插件
+
+| 插件 | 版本 | 用途 |
+|------|------|------|
+| `maven-compiler-plugin` | 3.13.0 | 编译 Java 21 源代码 |
+| `maven-shade-plugin` | 3.6.0 | 打包 Fat JAR，指定 `com.audaque.ReportGenerator` 为主类 |
+
 ## 功能特性
 
 ### 数据处理流程

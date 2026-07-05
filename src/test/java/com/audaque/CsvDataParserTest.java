@@ -61,9 +61,14 @@ class CsvDataParserTest {
 
         for (List<Double> row : data) {
             assertFalse(row.isEmpty(), "每行数据不应为空");
+            boolean hasNonNull = false;
             for (Double value : row) {
-                assertNotNull(value, "每个单元格值不应为 null");
+                if (value != null) {
+                    hasNonNull = true;
+                    break;
+                }
             }
+            assertTrue(hasNonNull, "每行应至少有一个非空数值");
         }
     }
 
@@ -74,9 +79,11 @@ class CsvDataParserTest {
 
         for (List<Double> row : data) {
             for (Double value : row) {
-                assertDoesNotThrow(() -> {
-                    double v = value;
-                }, "每个值都应是合法的 Double");
+                if (value != null) {
+                    assertDoesNotThrow(() -> {
+                        double v = value;
+                    }, "每个非空值都应是合法的 Double");
+                }
             }
         }
     }

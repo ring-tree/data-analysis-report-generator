@@ -44,7 +44,6 @@ public class DeepSeekOptimizer {
 
     static {
         loadConfig();
-        initHttpClient();
     }
 
     private static void loadConfig() {
@@ -67,25 +66,16 @@ public class DeepSeekOptimizer {
 
         if (apiKey.isEmpty() || PLACEHOLDER_KEY.equals(apiKey)) {
             throw new IllegalStateException(
-                    "请将 config.properties 中的 deepseek.api.key 占位值替换为面试官提供的短期有效 Key");
+                    "请将 config.properties 中的 deepseek.api.key 占位值替换为短期有效 Key");
         }
 
-        logger.info("DeepSeek optimizer initialized: url={}, model={}", apiUrl, model);
-    }
-
-    private static void initHttpClient() {
-        Properties props = new Properties();
         int connectTimeout = 10;
         int readTimeout = 60;
-        try (InputStream input = DeepSeekOptimizer.class.getClassLoader()
-                .getResourceAsStream(CONFIG_FILE)) {
-            if (input != null) {
-                props.load(input);
-                connectTimeout = Integer.parseInt(props.getProperty("http.connect.timeout", "10"));
-                readTimeout = Integer.parseInt(props.getProperty("http.read.timeout", "60"));
-            }
-        } catch (IOException | NumberFormatException e) {
-            logger.warn("Failed to read HTTP timeout config, using defaults: {}", e.getMessage());
+        try {
+            connectTimeout = Integer.parseInt(props.getProperty("http.connect.timeout", "10"));
+            readTimeout = Integer.parseInt(props.getProperty("http.read.timeout", "60"));
+        } catch (NumberFormatException e) {
+            logger.warn("Failed to parse HTTP timeout config, using defaults: {}", e.getMessage());
         }
 
         httpClient = new OkHttpClient.Builder()
@@ -94,7 +84,8 @@ public class DeepSeekOptimizer {
                 .writeTimeout(Duration.ofSeconds(readTimeout))
                 .build();
 
-        logger.info("HTTP client initialized: connect={}s, read={}s", connectTimeout, readTimeout);
+        logger.info("DeepSeek optimizer initialized: url={}, model={}, connect={}s, read={}s",
+                apiUrl, model, connectTimeout, readTimeout);
     }
 
     /**
@@ -302,7 +293,7 @@ public class DeepSeekOptimizer {
                 return objectMapper.readValue(cleaned, new TypeReference<List<String>>() {});
             } catch (IOException ex) {
                 logger.warn("Failed to parse response as JSON array: {}", response);
-                return List.of(response);
+                return List.of();
             }
         }
     }

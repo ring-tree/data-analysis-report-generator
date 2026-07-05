@@ -330,7 +330,7 @@
             @if(analysisText == null || analysisText.isEmpty())
                 <p style="color:var(--text-secondary);">暂无分析结论。</p>
             @else
-                <div class="analysis-text">${analysisText}</div>
+                <div class="analysis-text">$unsafe{analysisText}</div>
             @endif
         </section>
 

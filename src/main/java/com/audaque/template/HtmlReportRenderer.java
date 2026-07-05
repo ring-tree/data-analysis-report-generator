@@ -51,7 +51,7 @@ public class HtmlReportRenderer {
      * @throws IOException 模板编译或渲染失败
      */
     public String render(DataSummary summary, String analysisText) throws IOException {
-        String safeAnalysisText = analysisText != null ? analysisText : "";
+        String safeAnalysisText = formatAnalysisText(analysisText);
 
         TemplateOutput output = new StringOutput();
         templateEngine.render(TEMPLATE_NAME,
@@ -96,5 +96,24 @@ public class HtmlReportRenderer {
         Path filePath = dir.resolve(outputFile);
         Files.writeString(filePath, html);
         logger.info("Report written to: {}", filePath.toAbsolutePath());
+    }
+
+    private String formatAnalysisText(String text) {
+        if (text == null || text.isEmpty()) {
+            return "";
+        }
+        String escaped = text.replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;");
+
+        escaped = escaped.replaceAll("(?m)^### (.+)$", "<h3>$1</h3>");
+        escaped = escaped.replaceAll("(?m)^## (.+)$", "<h2>$1</h2>");
+        escaped = escaped.replaceAll("(?m)^# (.+)$", "<h1>$1</h1>");
+        escaped = escaped.replaceAll("\\*\\*(.+?)\\*\\*", "<strong>$1</strong>");
+        escaped = escaped.replaceAll("(?m)^- (.+)$", "<li>$1</li>");
+        escaped = escaped.replaceAll("`(.+?)`", "<code>$1</code>");
+
+        return escaped;
     }
 }

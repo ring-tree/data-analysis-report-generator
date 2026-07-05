@@ -114,7 +114,7 @@ class ReportGeneratorIntegrationTest {
 
     @Test
     @DisplayName("execute 主流程端到端测试（含 DeepSeek 调用或优雅降级）")
-    void testExecuteEndToEnd() {
+    void testExecuteEndToEnd() throws Exception {
         String csvPath = sampleCsvPath.toString();
 
         try {
@@ -122,10 +122,9 @@ class ReportGeneratorIntegrationTest {
             assertNotNull(result, "execute 应返回输出路径");
             assertTrue(Files.exists(result), "输出文件应存在：" + result);
             assertTrue(Files.size(result) > 500, "输出文件应有内容");
-        } catch (Exception e) {
-            String msg = e.getMessage() != null ? e.getMessage() : "";
-            assertNotNull(msg, "异常应包含错误信息");
-            assertFalse(msg.isEmpty(), "异常消息不应为空");
+        } catch (IllegalStateException e) {
+            assertTrue(e.getMessage().contains("DeepSeek") || e.getMessage().contains("占位值") || e.getMessage().contains("配置文件"),
+                    "仅允许 DeepSeek 配置相关的 IllegalStateException，实际异常: " + e.getMessage());
         }
     }
 }

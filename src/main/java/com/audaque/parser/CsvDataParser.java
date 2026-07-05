@@ -65,6 +65,7 @@ public class CsvDataParser {
                     String cellValue = record.get(i);
                     if (cellValue == null || cellValue.isBlank()) {
                         skippedCells++;
+                        row.add(null);
                         continue;
                     }
                     try {
@@ -73,12 +74,22 @@ public class CsvDataParser {
                         skippedCells++;
                         logger.warn("Skipping non-numeric value '{}' in column '{}', row {}",
                                 cellValue, columnNames.get(i), totalRows);
+                        row.add(null);
                     }
                 }
 
-                if (!row.isEmpty()) {
+                boolean hasNonNullValue = false;
+                for (Double v : row) {
+                    if (v != null) {
+                        hasNonNullValue = true;
+                        break;
+                    }
+                }
+                if (hasNonNullValue) {
                     data.add(row);
                     validRows++;
+                } else if (!row.isEmpty()) {
+                    data.add(row);
                 }
             }
 
