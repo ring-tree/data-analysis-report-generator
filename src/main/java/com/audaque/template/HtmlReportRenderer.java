@@ -6,6 +6,11 @@ import gg.jte.TemplateEngine;
 import gg.jte.TemplateOutput;
 import gg.jte.output.StringOutput;
 import gg.jte.resolve.DirectoryCodeResolver;
+import org.commonmark.ext.gfm.tables.TablesExtension;
+import org.commonmark.Extension;
+import org.commonmark.node.Node;
+import org.commonmark.parser.Parser;
+import org.commonmark.renderer.html.HtmlRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,6 +32,15 @@ public class HtmlReportRenderer {
     private static final String TEMPLATE_NAME = "report.jte";
     private static final String DEFAULT_OUTPUT_DIR = "output";
     private static final String DEFAULT_OUTPUT_FILE = "report.html";
+
+    private static final Parser markdownParser;
+    private static final HtmlRenderer markdownRenderer;
+
+    static {
+        List<Extension> extensions = List.of(TablesExtension.create());
+        markdownParser = Parser.builder().extensions(extensions).build();
+        markdownRenderer = HtmlRenderer.builder().extensions(extensions).build();
+    }
 
     private final TemplateEngine templateEngine;
 
@@ -102,18 +117,7 @@ public class HtmlReportRenderer {
         if (text == null || text.isEmpty()) {
             return "";
         }
-        String escaped = text.replace("&", "&amp;")
-                .replace("<", "&lt;")
-                .replace(">", "&gt;")
-                .replace("\"", "&quot;");
-
-        escaped = escaped.replaceAll("(?m)^### (.+)$", "<h3>$1</h3>");
-        escaped = escaped.replaceAll("(?m)^## (.+)$", "<h2>$1</h2>");
-        escaped = escaped.replaceAll("(?m)^# (.+)$", "<h1>$1</h1>");
-        escaped = escaped.replaceAll("\\*\\*(.+?)\\*\\*", "<strong>$1</strong>");
-        escaped = escaped.replaceAll("(?m)^- (.+)$", "<li>$1</li>");
-        escaped = escaped.replaceAll("`(.+?)`", "<code>$1</code>");
-
-        return escaped;
+        Node document = markdownParser.parse(text);
+        return markdownRenderer.render(document);
     }
 }

@@ -180,7 +180,6 @@
         }
 
         .analysis-text {
-            white-space: pre-wrap;
             font-size: 14px;
             line-height: 1.8;
             color: var(--text);
@@ -188,6 +187,84 @@
             padding: 18px;
             border-radius: var(--radius);
             border-left: 4px solid var(--accent);
+        }
+
+        .analysis-text h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin: 20px 0 12px;
+            color: var(--text);
+        }
+
+        .analysis-text h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 18px 0 10px;
+            color: var(--text);
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .analysis-text h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 16px 0 8px;
+            color: var(--text);
+        }
+
+        .analysis-text p {
+            margin: 8px 0;
+        }
+
+        .analysis-text ul, .analysis-text ol {
+            margin: 8px 0;
+            padding-left: 24px;
+        }
+
+        .analysis-text li {
+            margin: 4px 0;
+        }
+
+        .analysis-text table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 12px 0;
+            font-size: 13px;
+        }
+
+        .analysis-text th, .analysis-text td {
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
+        }
+
+        .analysis-text th {
+            background: var(--accent-light);
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .analysis-text tbody tr:nth-child(even) {
+            background: var(--bg);
+        }
+
+        .analysis-text code {
+            background: #e8e8e8;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: "Courier New", monospace;
+            font-size: 13px;
+            color: var(--danger);
+        }
+
+        .analysis-text strong {
+            font-weight: 700;
+        }
+
+        .analysis-text hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 16px 0;
         }
 
         footer {
