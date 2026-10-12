@@ -34,16 +34,29 @@ data-analysis-report-generator/
 │   │   └── CsvDataParser.java        # CSV 数据解析器
 │   ├── analysis/
 │   │   └── DataAnalyzer.java         # 统计分析与异常值检测
-│   ├── ai/
-│   │   └── DeepSeekOptimizer.java    # DeepSeek API 调用与优化
-│   ├── template/
-│   │   └── HtmlReportRenderer.java   # HTML 报告渲染器
-│   └── util/
-│       └── JsonlRecorder.java        # JSONL 记录工具
+│   ├── ai/                           # 统一 AI 接口管理层
+│   │   ├── AiManager.java            # 全局唯一入口：配置管理 + 提供方注册
+│   │   ├── AiClient.java             # 统一调用客户端（默认参数补齐 + 重试编排）
+│   │   ├── AiProvider.java           # 提供方适配接口
+│   │   ├── AiServiceConfig.java      # 提供方服务配置（端点/密钥/模型/超时/重试）
+│   │   ├── AiRequest.java            # 统一请求模型
+│   │   ├── AiResponse.java           # 统一响应模型
+│   │   ├── AiMessage.java            # 统一消息模型
+│   │   ├── RetryPolicy.java          # 重试策略（指数退避）
+│   │   ├── AiException.java          # 统一异常
+│   │   ├── AiProviderFactory.java    # 提供方工厂
+│   │   ├── AiProviderRegistration.java # 提供方注册信息
+│   │   ├── provider/
+│   │   │   ├── AbstractOpenAiCompatibleProvider.java  # OpenAI 兼容协议基类
+│   │   │   └── DeepSeekProvider.java # DeepSeek v4.1 flash 适配器
+│   │   └── service/
+│   │       └── AiAnalysisService.java # 报告领域提示词编排
+│   └── template/
+│       └── HtmlReportRenderer.java   # HTML 报告渲染器
 ├── src/main/jte/
 │   └── report.jte                    # jte 报告模板
 ├── src/main/resources/
-│   ├── config.properties             # 应用配置
+│   ├── ai-config.properties          # 统一 AI 配置（唯一配置入口）
 │   └── template_functions.json       # 模板函数定义（12 个函数，4 类别）
 ├── src/test/java/com/audaque/
 │   ├── CsvDataParserTest.java        # CSV 解析器单元测试
@@ -105,13 +118,17 @@ data-analysis-report-generator/
 
 ### 配置 API Key
 
-编辑 `src/main/resources/config.properties`：
+编辑 `src/main/resources/ai-config.properties`（AI 模块唯一配置入口）：
 
 ```properties
-deepseek.api.key=sk-YOUR_DEEPSEEK_API_KEY
-deepseek.api.url=https://api.deepseek.com/v1/chat/completions
-deepseek.model=deepseek-v4-flash
+ai.default-provider=deepseek
+ai.deepseek.api-key=sk-YOUR_DEEPSEEK_API_KEY_HERE
+ai.deepseek.endpoint=https://api.deepseek.com/v1/chat/completions
+ai.deepseek.model=deepseek-v4.1-flash
 ```
+
+未配置有效密钥时程序仍可正常运行：会自动跳过 AI 增强步骤，仅生成统计类报告（分析结论显示占位提示）。
+统一 AI 接口管理层的完整说明见 [docs/ai-module.md](docs/ai-module.md)。
 
 ### 构建
 

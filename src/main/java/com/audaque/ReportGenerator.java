@@ -1,6 +1,9 @@
 package com.audaque;
 
-import com.audaque.ai.DeepSeekOptimizer;
+import com.audaque.ai.AiClient;
+import com.audaque.ai.AiException;
+import com.audaque.ai.AiManager;
+import com.audaque.ai.service.AiAnalysisService;
 import com.audaque.analysis.DataAnalyzer;
 import com.audaque.config.TemplateFunctionConfig;
 import com.audaque.model.DataSummary;
@@ -70,50 +73,58 @@ public class ReportGenerator {
                 allFunctions.size(),
                 allFunctions.stream().map(TemplateFunction::category).distinct().count());
 
-        logger.info("[Step 4] Initializing DeepSeek optimizer...");
-        DeepSeekOptimizer optimizer;
-        try {
-            optimizer = new DeepSeekOptimizer();
-        } catch (ExceptionInInitializerError e) {
-            Throwable cause = e.getCause();
-            String message = cause != null ? cause.getMessage() : e.getMessage();
-            throw new IllegalStateException("DeepSeek optimizer init failed: " + message, e);
+        logger.info("[Step 4] Initializing unified AI layer...");
+        AiManager aiManager = AiManager.getInstance();
+        AiClient aiClient = aiManager.defaultClient();
+        AiAnalysisService aiService = new AiAnalysisService(aiClient);
+        boolean aiEnabled = aiService.isAvailable();
+        logger.info("[Step 4] AI layer ready: provider={}, configured={}",
+                aiManager.defaultProvider(), aiEnabled);
+        if (!aiEnabled) {
+            logger.warn("[Step 4] AI 未配置有效 API Key（见 ai-config.properties），"
+                    + "将跳过 AI 增强步骤，仅生成统计类报告");
         }
-        logger.info("[Step 4] DeepSeek optimizer ready");
 
-        logger.info("[Step 5] Selecting applicable template functions...");
-        List<String> selectedIds = optimizer.selectFunctions(summary);
-        logger.info("[Step 5] Selected {} functions: {}", selectedIds.size(), selectedIds);
-
-        logger.info("[Step 6] Optimizing {} selected template functions...", selectedIds.size());
+        List<String> selectedIds = List.of();
         List<TemplateFunction> optimizedFunctions = new ArrayList<>();
-        for (String id : selectedIds) {
-            TemplateFunction func = config.getById(id).orElse(null);
-            if (func == null) {
-                logger.warn("[Step 6] Function '{}' not found in config, skipping", id);
-                continue;
+        String analysisText = "";
+
+        if (aiEnabled) {
+            logger.info("[Step 5] Selecting applicable template functions...");
+            selectedIds = aiService.selectFunctions(summary);
+            logger.info("[Step 5] Selected {} functions: {}", selectedIds.size(), selectedIds);
+
+            logger.info("[Step 6] Optimizing {} selected template functions...", selectedIds.size());
+            for (String id : selectedIds) {
+                TemplateFunction func = config.getById(id).orElse(null);
+                if (func == null) {
+                    logger.warn("[Step 6] Function '{}' not found in config, skipping", id);
+                    continue;
+                }
+                try {
+                    String optimizedImpl = aiService.optimizeTemplate(func, summary);
+                    TemplateFunction optimized = new TemplateFunction(
+                            func.id(), func.name(), func.category(),
+                            func.description(), func.parameters(), optimizedImpl);
+                    optimizedFunctions.add(optimized);
+                    logger.info("[Step 6] Optimized: {} ({})", func.name(), func.id());
+                } catch (AiException e) {
+                    logger.error("[Step 6] Failed to optimize '{}': {}", func.name(), e.getMessage());
+                    optimizedFunctions.add(func);
+                }
             }
-            try {
-                String optimizedImpl = optimizer.optimizeTemplate(func, summary);
-                TemplateFunction optimized = new TemplateFunction(
-                        func.id(), func.name(), func.category(),
-                        func.description(), func.parameters(), optimizedImpl);
-                optimizedFunctions.add(optimized);
-                logger.info("[Step 6] Optimized: {} ({})", func.name(), func.id());
-            } catch (IOException e) {
-                logger.error("[Step 6] Failed to optimize '{}': {}", func.name(), e.getMessage());
-                optimizedFunctions.add(func);
-            }
+            logger.info("[Step 6] Optimized {}/{} functions", optimizedFunctions.size(), selectedIds.size());
+
+            logger.info("[Step 7] Generating report prompt...");
+            String reportPrompt = aiService.generateReportPrompt(summary, selectedIds);
+            logger.info("[Step 7] Report prompt generated ({} chars)", reportPrompt.length());
+
+            logger.info("[Step 8] Generating final analysis text via AI...");
+            analysisText = aiService.generateAnalysisText(reportPrompt);
+            logger.info("[Step 8] Analysis text generated ({} chars)", analysisText.length());
+        } else {
+            logger.info("[Step 5-8] AI enhancement skipped (provider not configured)");
         }
-        logger.info("[Step 6] Optimized {}/{} functions", optimizedFunctions.size(), selectedIds.size());
-
-        logger.info("[Step 7] Generating report prompt...");
-        String reportPrompt = optimizer.generateReportPrompt(summary, selectedIds);
-        logger.info("[Step 7] Report prompt generated ({} chars)", reportPrompt.length());
-
-        logger.info("[Step 8] Generating final analysis text via DeepSeek API...");
-        String analysisText = optimizer.generateAnalysisText(reportPrompt);
-        logger.info("[Step 8] Analysis text generated ({} chars)", analysisText.length());
 
         logger.info("[Step 9] Rendering HTML report...");
         HtmlReportRenderer renderer = new HtmlReportRenderer();

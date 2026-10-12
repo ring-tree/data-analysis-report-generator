@@ -1,6 +1,9 @@
 package com.audaque;
 
-import com.audaque.ai.DeepSeekOptimizer;
+import com.audaque.ai.AiClient;
+import com.audaque.ai.AiManager;
+import com.audaque.ai.AiServiceConfig;
+import com.audaque.ai.provider.DeepSeekProvider;
 import com.audaque.analysis.DataAnalyzer;
 import com.audaque.config.TemplateFunctionConfig;
 import com.audaque.model.ColumnStat;
@@ -70,18 +73,23 @@ class ReportGeneratorIntegrationTest {
     }
 
     @Test
-    @DisplayName("DeepSeek 优化器初始化验证")
-    void testDeepSeekOptimizerInit() {
-        try {
-            DeepSeekOptimizer optimizer = new DeepSeekOptimizer();
-            assertNotNull(optimizer, "DeepSeek 优化器应成功初始化（真实 API Key 模式下）");
-        } catch (ExceptionInInitializerError e) {
-            Throwable cause = e.getCause();
-            assertInstanceOf(IllegalStateException.class, cause,
-                    "占位 Key 模式下应抛出 IllegalStateException");
-            assertTrue(cause.getMessage().contains("占位值替换"),
-                    "应提示替换占位 Key，实际: " + cause.getMessage());
-        }
+    @DisplayName("统一 AI 接口管理层应加载 DeepSeek 提供方配置")
+    void testAiManagerDefaultConfig() {
+        AiManager manager = AiManager.getInstance();
+
+        assertTrue(manager.providers().contains(DeepSeekProvider.NAME),
+                "应注册 DeepSeek 提供方");
+        assertEquals(DeepSeekProvider.NAME, manager.defaultProvider(),
+                "默认提供方应为 deepseek");
+
+        AiServiceConfig config = manager.defaultConfig();
+        assertEquals(DeepSeekProvider.NAME, config.providerName());
+        assertFalse(config.endpoint().isBlank(), "端点不应为空");
+        assertFalse(config.model().isBlank(), "模型不应为空");
+
+        AiClient client = manager.defaultClient();
+        assertEquals(config.isConfigured(), client.isConfigured(),
+                "客户端配置状态应与服务配置一致");
     }
 
     @Test
@@ -113,18 +121,22 @@ class ReportGeneratorIntegrationTest {
     }
 
     @Test
-    @DisplayName("execute 主流程端到端测试（含 DeepSeek 调用或优雅降级）")
+    @DisplayName("execute 主流程端到端测试（AI 未配置时优雅降级，仍产出统计报告）")
     void testExecuteEndToEnd() throws Exception {
         String csvPath = sampleCsvPath.toString();
 
-        try {
-            Path result = ReportGenerator.execute(csvPath);
-            assertNotNull(result, "execute 应返回输出路径");
-            assertTrue(Files.exists(result), "输出文件应存在：" + result);
-            assertTrue(Files.size(result) > 500, "输出文件应有内容");
-        } catch (IllegalStateException e) {
-            assertTrue(e.getMessage().contains("DeepSeek") || e.getMessage().contains("占位值") || e.getMessage().contains("配置文件"),
-                    "仅允许 DeepSeek 配置相关的 IllegalStateException，实际异常: " + e.getMessage());
+        Path result = ReportGenerator.execute(csvPath);
+
+        assertNotNull(result, "execute 应返回输出路径");
+        assertTrue(Files.exists(result), "输出文件应存在：" + result);
+        assertTrue(Files.size(result) > 500, "输出文件应有内容");
+
+        String html = Files.readString(result);
+        assertTrue(html.contains("数据分析报告"), "应生成报告标题");
+        assertTrue(html.contains("分析结论"), "应包含分析结论区块");
+
+        if (!AiManager.getInstance().defaultConfig().isConfigured()) {
+            assertTrue(html.contains("暂无分析结论"), "AI 未配置时应展示占位结论");
         }
     }
 }

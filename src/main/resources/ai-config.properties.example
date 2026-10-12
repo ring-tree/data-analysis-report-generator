@@ -1,0 +1,56 @@
+# ============================================================
+# 统一 AI 接口管理层配置模板 (Unified AI Layer Configuration Template)
+# ------------------------------------------------------------
+# 使用方式：复制本文件为 ai-config.properties 并填入真实值。
+#   Windows:  copy ai-config.properties.example ai-config.properties
+#   Linux/Mac: cp ai-config.properties.example ai-config.properties
+# 注意：ai-config.properties 已被 .gitignore 忽略，切勿将真实密钥提交入库。
+# 命名规范：ai.<provider>.<参数名>，provider 需与管理层注册名称一致（当前内置：deepseek）
+# ============================================================
+
+# 默认使用的 AI 提供方（决定 ReportGenerator 走哪个 provider）
+ai.default-provider=deepseek
+
+# ============================================================
+# DeepSeek 提供方配置（内置 DeepSeek 官方 v4.1 flash 预设）
+# ============================================================
+
+# 【接入点 1】API 密钥：替换为真实 Key 后 AI 能力自动生效
+ai.deepseek.api-key=sk-YOUR_DEEPSEEK_API_KEY_HERE
+
+# 【接入点 2】服务地址：默认 DeepSeek 官方 OpenAI 兼容端点
+ai.deepseek.endpoint=https://api.deepseek.com/v1/chat/completions
+
+# 【接入点 3】模型名称：默认 DeepSeek 官方 v4.1 flash
+ai.deepseek.model=deepseek-v4.1-flash
+
+# 请求默认参数
+ai.deepseek.temperature=0.7
+ai.deepseek.max-tokens=2048
+
+# 超时设置（单位：秒）
+ai.deepseek.connect-timeout-seconds=10
+ai.deepseek.read-timeout-seconds=60
+ai.deepseek.write-timeout-seconds=60
+
+# 重试策略（指数退避：initial * multiplier^(n-1)）
+ai.deepseek.max-attempts=3
+ai.deepseek.initial-backoff-millis=1000
+ai.deepseek.backoff-multiplier=2.0
+
+# ============================================================
+# 新增其他模型示例（取消注释并注册对应 Provider 后即可使用）
+# ------------------------------------------------------------
+# ai.default-provider=openai
+# ai.openai.api-key=sk-YOUR_OPENAI_API_KEY_HERE
+# ai.openai.endpoint=https://api.openai.com/v1/chat/completions
+# ai.openai.model=gpt-4o-mini
+# ai.openai.temperature=0.7
+# ai.openai.max-tokens=2048
+# ai.openai.connect-timeout-seconds=10
+# ai.openai.read-timeout-seconds=60
+# ai.openai.write-timeout-seconds=60
+# ai.openai.max-attempts=3
+# ai.openai.initial-backoff-millis=1000
+# ai.openai.backoff-multiplier=2.0
+# ============================================================

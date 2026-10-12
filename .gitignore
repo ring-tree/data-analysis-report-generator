@@ -34,5 +34,5 @@ dependency-reduced-pom.xml
 jte-classes/
 output/
 
-# ignore file
-Ignore*
+# Local AI config (may contain a real API key) - do not commit
+src/main/resources/ai-config.properties
